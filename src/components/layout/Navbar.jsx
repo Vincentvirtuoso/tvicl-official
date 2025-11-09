@@ -43,8 +43,8 @@ const Navbar = ({ isDesktop, setSidebarOpen }) => {
             <FiCalendar className="w-5 h-5" />
           </motion.button>
           <div className="flex items-center space-x-3 pl-3 border-l border-gray-200">
-            <div className="w-10 h-10 bg-linear-to-br from-yellow-500 to-red-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-              AD
+            <div className="w-10 h-10 bg-linear-to-br from-yellow-500 to-red-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md text-sm">
+              T&V
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-semibold text-gray-800">Admin</p>
