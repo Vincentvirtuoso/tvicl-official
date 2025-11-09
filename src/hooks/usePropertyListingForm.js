@@ -19,7 +19,7 @@ import {
 import { isValidEmail, isValidPhone, isValidUrl } from "../utils/validators";
 
 export const usePropertyListingForm = () => {
-  const [step, setStep] = useState(7);
+  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState(fields);
   const [canProceedStep5, setCanProceedStep5] = useState(false);

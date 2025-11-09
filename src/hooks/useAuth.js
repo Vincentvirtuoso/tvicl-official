@@ -8,13 +8,13 @@ import { useNavigate } from "react-router-dom";
 export const useAuth = () => {
   // ------------------- State -------------------
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("tvicl_user");
+    const saved = localStorage.getItem("tvicl_admin_user");
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
         console.warn("Failed to parse saved user, resetting");
-        localStorage.removeItem("tvicl_user");
+        localStorage.removeItem("tvicl_admin_user");
         return null;
       }
     }
@@ -31,27 +31,27 @@ export const useAuth = () => {
   // ------------------- Helpers -------------------
   const saveUser = (userData) => {
     setUser(userData);
-    localStorage.setItem("tvicl_user", JSON.stringify(userData));
+    localStorage.setItem("tvicl_admin_user", JSON.stringify(userData));
   };
 
   const clearUser = () => {
     setUser(null);
-    localStorage.removeItem("tvicl_user");
+    localStorage.removeItem("tvicl_admin_user");
     delete axios.defaults.headers.common["Authorization"];
   };
 
   // ------------------- REGISTER -------------------
-  const register = async (data) => {
-    setLoadingState("register", true);
+  const registerAdmin = async (data) => {
+    setLoadingState("registerAdmin", true);
     setError(null);
     try {
-      const res = await axios.post("/auth/register", data);
+      const res = await axios.post("/auth/register/admin", data);
       return res.data;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       throw err;
     } finally {
-      setLoadingState("register", false);
+      setLoadingState("registerAdmin", false);
     }
   };
 
@@ -59,25 +59,33 @@ export const useAuth = () => {
   const login = async (data) => {
     setLoadingState("login", true);
     setError(null);
-    try {
-      const res = await axios.post("/auth/login", data);
 
-      // Save user; token is via HTTP-only cookies
+    try {
+      const res = await axios.post("/auth/login", { ...data, role: "admin" });
+
+      if (!res.data.user.roles.includes("admin")) {
+        throw new Error("Access denied. Only admin accounts can log in.");
+      }
+
       saveUser({ ...res.data.user, isUnauthorized: false });
 
-      console.log(res.data.user);
+      console.log("✅ Admin logged in:", res.data.user);
 
       return res.data;
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "An unexpected error occurred";
+      setError(message);
+      console.warn("⚠️ Login failed:", message);
       throw err;
     } finally {
       setLoadingState("login", false);
     }
   };
 
-  // ------------------- LOGOUT -------------------
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setLoadingState("logout", true);
     try {
       await axios.post("/auth/logout");
@@ -90,40 +98,12 @@ export const useAuth = () => {
       // 👇 redirect user smoothly using React Router
       navigate("/", { replace: true, state: { from: "logout" } });
     }
-  };
-
-  // ------------------- VERIFY EMAIL -------------------
-  const verifyEmail = async (token) => {
-    setLoadingState("verifyEmail", true);
-    try {
-      const res = await axios.get(`/auth/verify-email/${token}`);
-      saveUser(res.data.user); // update user state if verified
-      return res.data;
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      throw err;
-    } finally {
-      setLoadingState("verifyEmail", false);
-    }
-  };
-
-  const resendVerificationEmail = async (email) => {
-    setLoadingState("resendVerification", true);
-    try {
-      const res = await axios.post("/auth/resend-verification", { email });
-      return res.data;
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      throw err;
-    } finally {
-      setLoadingState("resendVerification", false);
-    }
-  };
+  }, [navigate]);
 
   // ------------------- REFRESH TOKEN -------------------
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  const refreshToken = async () => {
+  const refreshToken = useCallback(async () => {
     for (let i = 0; i < 3; i++) {
       try {
         await axios.post("/auth/refresh-token");
@@ -133,7 +113,7 @@ export const useAuth = () => {
       }
     }
     logout();
-  };
+  }, [logout]);
 
   // ------------------- CURRENT USER -------------------
   const getCurrentUser = useCallback(async () => {
@@ -180,7 +160,6 @@ export const useAuth = () => {
     }
   };
 
-  // ------------------- UPDATE PROFILE -------------------
   const updateProfile = async (data) => {
     setLoadingState("updateProfile", true);
     try {
@@ -189,38 +168,6 @@ export const useAuth = () => {
       return res.data;
     } finally {
       setLoadingState("updateProfile", false);
-    }
-  };
-
-  // ------------------- ADD PROFILE -------------------
-  const addProfile = async ({ profileData }) => {
-    setLoadingState("addProfile", true);
-    try {
-      const res = await axios.post("/auth/add-profile", profileData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      saveUser(res.data.user);
-      return res.data;
-    } catch (error) {
-      console.error("Error adding profile:", error);
-      throw error;
-    } finally {
-      setLoadingState("addProfile", false);
-    }
-  };
-
-  // ------------------- UPDATE ROLE -------------------
-  const updateRole = async ({ role, makeActive }) => {
-    if (!user) throw new Error("Not authenticated");
-    setLoadingState("updateRole", true);
-    try {
-      const { data } = await axios.patch("/auth/role", { role, makeActive });
-      saveUser({ ...user, roles: data.roles, activeRole: data.activeRole });
-      return data;
-    } finally {
-      setLoadingState("updateRole", false);
     }
   };
 
@@ -244,7 +191,7 @@ export const useAuth = () => {
     });
 
     setRefreshHandler(() => {
-      return refreshToken(); // must return a Promise
+      return refreshToken();
     });
   }, [logout, refreshToken]);
 
@@ -253,18 +200,14 @@ export const useAuth = () => {
     user,
     loading,
     error,
-    register,
+    registerAdmin,
     login,
     logout,
-    verifyEmail,
-    resendVerificationEmail,
     refreshToken,
     forgotPassword,
     resetPassword,
     updateProfile,
-    updateRole,
     changePassword,
     getCurrentUser,
-    addProfile,
   };
 };

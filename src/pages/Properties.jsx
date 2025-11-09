@@ -1,27 +1,20 @@
 // pages/PropertiesList.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FiMapPin,
   FiHome,
-  FiDollarSign,
   FiFilter,
   FiSearch,
   FiGrid,
   FiList,
   FiEye,
-  FiHeart,
-  FiShare2,
   FiChevronDown,
-  FiCheck,
-  FiX,
-  FiTrendingUp,
   FiUsers,
   FiTarget,
+  FiLoader,
+  FiAlertCircle,
 } from "react-icons/fi";
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
   PieChart,
@@ -36,247 +29,7 @@ import {
 } from "recharts";
 import StatCard from "../components/common/StatCard";
 import PropertyCard from "../components/ui/PropertyCard";
-
-// Dummy data based on your schema
-const dummyProperties = [
-  {
-    _id: "1",
-    propertyId: "NGPROP001",
-    title: "Luxury 3 Bedroom Apartment in Lekki",
-    description:
-      "Beautiful modern apartment with stunning ocean views, fully furnished with premium amenities.",
-    address: {
-      street: "12 Admiralty Way",
-      area: "Lekki Phase 1",
-      city: "Lagos",
-      state: "Lagos",
-      country: "Nigeria",
-    },
-    location: {
-      type: "Point",
-      coordinates: [3.4513, 6.4413], // Lekki coordinates
-    },
-    propertyType: "Flat/Apartment",
-    flatType: "3 Bedroom",
-    bedrooms: 3,
-    bathrooms: 3,
-    price: {
-      amount: 85000000,
-      currency: "NGN",
-      negotiable: true,
-    },
-    listingType: "For Sale",
-    furnishingStatus: "Fully Furnished",
-    propertyCondition: "Excellent",
-    amenities: ["Swimming Pool", "Gym", "Security", "CCTV", "Generator"],
-    media: [
-      {
-        url: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500",
-        type: "image",
-        category: "exterior",
-        subCategory: "cover",
-        isPrimary: true,
-      },
-    ],
-    views: 2450,
-    saves: 48,
-    inquiries: 23,
-    approvalStatus: "Approved",
-    isVerified: true,
-    availableFrom: new Date(),
-    createdAt: new Date("2024-01-15"),
-  },
-  {
-    _id: "2",
-    propertyId: "NGPROP002",
-    title: "Modern Duplex in Ikeja GRA",
-    description:
-      "Spacious duplex with elegant finish, located in the heart of Ikeja GRA.",
-    address: {
-      street: "5 Oba Akinjobi Way",
-      area: "Ikeja GRA",
-      city: "Lagos",
-      state: "Lagos",
-      country: "Nigeria",
-    },
-    location: {
-      type: "Point",
-      coordinates: [3.349, 6.6018], // Ikeja coordinates
-    },
-    propertyType: "Detached Duplex",
-    bedrooms: 4,
-    bathrooms: 4,
-    price: {
-      amount: 120000000,
-      currency: "NGN",
-      negotiable: false,
-    },
-    listingType: "For Sale",
-    furnishingStatus: "Semi-Furnished",
-    propertyCondition: "New",
-    amenities: ["Garden", "Security", "Generator", "Borehole"],
-    media: [
-      {
-        url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500",
-        type: "image",
-        category: "exterior",
-        subCategory: "cover",
-        isPrimary: true,
-      },
-    ],
-    views: 1890,
-    saves: 35,
-    inquiries: 18,
-    approvalStatus: "Approved",
-    isVerified: true,
-    availableFrom: new Date(),
-    createdAt: new Date("2024-02-10"),
-  },
-  {
-    _id: "3",
-    propertyId: "NGPROP003",
-    title: "2 Bedroom Flat for Rent in Victoria Island",
-    description:
-      "Cozy apartment in secure estate, perfect for young professionals.",
-    address: {
-      street: "23A Adeola Odeku",
-      area: "Victoria Island",
-      city: "Lagos",
-      state: "Lagos",
-      country: "Nigeria",
-    },
-    location: {
-      type: "Point",
-      coordinates: [3.4255, 6.4281], // VI coordinates
-    },
-    propertyType: "Flat/Apartment",
-    flatType: "2 Bedroom",
-    bedrooms: 2,
-    bathrooms: 2,
-    price: {
-      amount: 4500000,
-      currency: "NGN",
-      negotiable: true,
-    },
-    listingType: "For Rent",
-    rentalDetails: {
-      depositAmount: 4500000,
-      rentFrequency: "Yearly",
-      petsAllowed: false,
-    },
-    furnishingStatus: "Fully Furnished",
-    propertyCondition: "Excellent",
-    amenities: ["Swimming Pool", "Gym", "24/7 Security", "CCTV"],
-    media: [
-      {
-        url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500",
-        type: "image",
-        category: "exterior",
-        subCategory: "cover",
-        isPrimary: true,
-      },
-    ],
-    views: 3120,
-    saves: 67,
-    inquiries: 42,
-    approvalStatus: "Approved",
-    isVerified: true,
-    availableFrom: new Date(),
-    createdAt: new Date("2024-01-28"),
-  },
-  {
-    _id: "4",
-    propertyId: "NGPROP004",
-    title: "Commercial Space in Abuja Central",
-    description:
-      "Prime commercial space suitable for office or retail business.",
-    address: {
-      street: "Plot 123 Central Area",
-      area: "Central Business District",
-      city: "Abuja",
-      state: "FCT",
-      country: "Nigeria",
-    },
-    location: {
-      type: "Point",
-      coordinates: [7.4951, 9.0579], // Abuja coordinates
-    },
-    propertyType: "Commercial",
-    bedrooms: 0,
-    bathrooms: 2,
-    price: {
-      amount: 75000000,
-      currency: "NGN",
-      negotiable: true,
-    },
-    listingType: "For Sale",
-    furnishingStatus: "Unfurnished",
-    propertyCondition: "Good",
-    amenities: ["Security", "CCTV", "Generator", "Parking"],
-    media: [
-      {
-        url: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500",
-        type: "image",
-        category: "exterior",
-        subCategory: "cover",
-        isPrimary: true,
-      },
-    ],
-    views: 1560,
-    saves: 28,
-    inquiries: 15,
-    approvalStatus: "Pending",
-    isVerified: false,
-    availableFrom: new Date(),
-    createdAt: new Date("2024-03-01"),
-  },
-  {
-    _id: "5",
-    propertyId: "NGPROP005",
-    title: "Bungalow in Port Harcourt GRA",
-    description:
-      "Beautiful 3-bedroom bungalow with large compound and modern amenities.",
-    address: {
-      street: "15 Nnadi Azikiwe Road",
-      area: "GRA Phase 2",
-      city: "Port Harcourt",
-      state: "Rivers",
-      country: "Nigeria",
-    },
-    location: {
-      type: "Point",
-      coordinates: [7.0134, 4.8156], // Port Harcourt coordinates
-    },
-    propertyType: "Bungalow",
-    bedrooms: 3,
-    bathrooms: 3,
-    price: {
-      amount: 65000000,
-      currency: "NGN",
-      negotiable: true,
-    },
-    listingType: "For Sale",
-    furnishingStatus: "Semi-Furnished",
-    propertyCondition: "Excellent",
-    amenities: ["Garden", "Security", "Borehole", "Generator"],
-    media: [
-      {
-        url: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=500",
-        type: "image",
-        category: "exterior",
-        subCategory: "cover",
-        isPrimary: true,
-      },
-    ],
-    views: 1780,
-    saves: 32,
-    inquiries: 19,
-    approvalStatus: "Approved",
-    isVerified: true,
-    availableFrom: new Date(),
-    createdAt: new Date("2024-02-22"),
-  },
-];
+import { usePropertyAPI } from "../hooks/useProperty";
 
 const PropertiesList = () => {
   const [viewMode, setViewMode] = useState("grid");
@@ -290,21 +43,60 @@ const PropertiesList = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter properties
-  const filteredProperties = dummyProperties.filter((property) => {
-    const matchesSearch =
-      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.address.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.address.area.toLowerCase().includes(searchTerm.toLowerCase());
+  // Use the property API hook
+  const { data, isLoading, getError, fetchAnalytics, searchProperties } =
+    usePropertyAPI();
 
-    const matchesCity = !filters.city || property.address.city === filters.city;
+  // Extract properties from the hook data
+  const backendProperties = data.properties || [];
+  const analyticsData = data.stats || {};
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchAnalytics();
+    searchProperties("");
+  }, []);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (
+      searchTerm.trim() !== "" ||
+      Object.keys(filters).some(
+        (key) => filters[key] !== "" && filters[key] !== 0
+      )
+    ) {
+      const searchParams = {
+        search: searchTerm,
+        ...filters,
+      };
+      // Remove empty filters
+      Object.keys(searchParams).forEach((key) => {
+        if (searchParams[key] === "" || searchParams[key] === 0) {
+          delete searchParams[key];
+        }
+      });
+      searchProperties(searchParams);
+    }
+  }, [searchTerm, filters]);
+
+  const filteredProperties = backendProperties.filter((property) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      property.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.address?.city
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      property.address?.area?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCity =
+      !filters.city || property.address?.city === filters.city;
     const matchesPropertyType =
       !filters.propertyType || property.propertyType === filters.propertyType;
     const matchesListingType =
       !filters.listingType || property.listingType === filters.listingType;
     const matchesPrice =
-      property.price.amount >= filters.priceRange[0] &&
-      property.price.amount <= filters.priceRange[1];
+      property.price?.amount >= filters.priceRange[0] &&
+      property.price?.amount <= filters.priceRange[1];
     const matchesBedrooms =
       !filters.bedrooms || property.bedrooms === parseInt(filters.bedrooms);
 
@@ -318,8 +110,8 @@ const PropertiesList = () => {
     );
   });
 
-  // Analytics data
-  const propertyTypeData = [
+  // Analytics data - fallback to dummy data if no backend data
+  const propertyTypeData = analyticsData.propertyTypeDistribution || [
     { name: "Apartments", value: 35, color: "#3b82f6" },
     { name: "Duplex", value: 25, color: "#10b981" },
     { name: "Bungalow", value: 15, color: "#f59e0b" },
@@ -327,7 +119,7 @@ const PropertiesList = () => {
     { name: "Others", value: 13, color: "#8b5cf6" },
   ];
 
-  const performanceData = [
+  const performanceData = analyticsData.performanceTrends || [
     { month: "Jan", views: 4500, inquiries: 120 },
     { month: "Feb", views: 5200, inquiries: 145 },
     { month: "Mar", views: 4800, inquiries: 130 },
@@ -336,17 +128,55 @@ const PropertiesList = () => {
     { month: "Jun", views: 7200, inquiries: 210 },
   ];
 
-  const totalProperties = dummyProperties.length;
-  const totalViews = dummyProperties.reduce((sum, prop) => sum + prop.views, 0);
-  const totalInquiries = dummyProperties.reduce(
-    (sum, prop) => sum + prop.inquiries,
-    0
-  );
-  const approvalRate = (
-    (dummyProperties.filter((p) => p.approvalStatus === "Approved").length /
-      totalProperties) *
-    100
-  ).toFixed(1);
+  // Calculate stats from backend data or use analytics data
+  const totalProperties =
+    analyticsData.totalProperties || backendProperties.length;
+  const totalViews =
+    analyticsData.totalViews ||
+    backendProperties.reduce((sum, prop) => sum + (prop.views || 0), 0);
+  const totalInquiries =
+    analyticsData.totalInquiries ||
+    backendProperties.reduce((sum, prop) => sum + (prop.inquiries || 0), 0);
+  const approvalRate =
+    analyticsData.approvalRate ||
+    (
+      (backendProperties.filter((p) => p.approvalStatus === "Approved").length /
+        Math.max(backendProperties.length, 1)) *
+      100
+    ).toFixed(1);
+
+  // Loading state
+  if (isLoading("properties") && backendProperties.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50/30 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <FiLoader className="w-12 h-12 text-yellow-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading properties...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (getError("properties")) {
+    return (
+      <div className="min-h-screen bg-gray-50/30 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <FiAlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            Failed to load properties
+          </h3>
+          <p className="text-gray-600 mb-4">{getError("properties")}</p>
+          <button
+            onClick={() => searchProperties("")}
+            className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/30 p-6">
@@ -364,7 +194,7 @@ const PropertiesList = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+            className="px-6 py-3 bg-linear-to-r from-yellow-600 to-yellow-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
           >
             Add New Property
           </motion.button>
@@ -375,35 +205,35 @@ const PropertiesList = () => {
           <StatCard
             title="Total Properties"
             value={totalProperties}
-            change={12.5}
+            // change={analyticsData.propertiesChange || 12.5}
             icon={FiHome}
             color="blue"
           />
           <StatCard
             title="Total Views"
             value={totalViews.toLocaleString()}
-            change={8.2}
+            // change={analyticsData.viewsChange || 8.2}
             icon={FiEye}
             color="green"
           />
           <StatCard
             title="Total Inquiries"
             value={totalInquiries}
-            change={15.3}
+            // change={analyticsData.inquiriesChange || 15.3}
             icon={FiUsers}
             color="purple"
           />
           <StatCard
             title="Approval Rate"
             value={`${approvalRate}%`}
-            change={2.4}
+            // change={analyticsData.approvalChange || 2.4}
             icon={FiTarget}
             color="orange"
           />
         </div>
 
         {/* Analytics Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Property Type Distribution
@@ -459,7 +289,7 @@ const PropertiesList = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </div> */}
 
         {/* Search and Filters */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -474,6 +304,9 @@ const PropertiesList = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition bg-gray-50/50"
                 />
+                {isLoading("properties") && (
+                  <FiLoader className="absolute right-3 top-1/2 transform -translate-y-1/2 text-yellow-600 animate-spin w-5 h-5" />
+                )}
               </div>
 
               <button
@@ -589,8 +422,9 @@ const PropertiesList = () => {
               Properties ({filteredProperties.length})
             </h2>
             <p className="text-sm text-gray-500">
-              Showing {filteredProperties.length} of {dummyProperties.length}{" "}
+              Showing {filteredProperties.length} of {backendProperties.length}{" "}
               properties
+              {isLoading("properties") && " (Loading...)"}
             </p>
           </div>
 
@@ -616,7 +450,7 @@ const PropertiesList = () => {
             </div>
           )}
 
-          {filteredProperties.length === 0 && (
+          {filteredProperties.length === 0 && !isLoading("properties") && (
             <div className="text-center py-12">
               <FiHome className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -625,6 +459,13 @@ const PropertiesList = () => {
               <p className="text-gray-500">
                 Try adjusting your search or filters
               </p>
+            </div>
+          )}
+
+          {isLoading("properties") && filteredProperties.length === 0 && (
+            <div className="text-center py-12">
+              <FiLoader className="w-8 h-8 text-yellow-600 animate-spin mx-auto mb-4" />
+              <p className="text-gray-500">Loading properties...</p>
             </div>
           )}
         </div>

@@ -36,6 +36,8 @@ const router = createBrowserRouter([
       },
     ],
   },
+  { path: "/signup", element: <AdminSignup /> },
+  { path: "/login", element: <AdminLogin /> },
 ]);
 export default router;
 import { createBrowserRouter } from "react-router-dom";
@@ -47,3 +49,5 @@ import UserDetail from "../pages/UserDetail";
 import PropertyDetail from "../pages/PropertyDetail";
 import Revenue from "../pages/Revenue";
 import AddProperty from "../pages/AddProperty";
+import AdminSignup from "../pages/auth/AdminSignup";
+import AdminLogin from "../pages/auth/AdminLogin";

@@ -2,7 +2,7 @@
 import { useRouteError, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  LuHouse as HomeIcon,
+  LuHouse,
   LuChevronLeft,
   LuRefreshCcw,
   LuTriangleAlert,
@@ -191,18 +191,18 @@ const ErrorPage = () => {
 
           {/* Action Buttons */}
           <motion.div
-            className="flex flex-col sm:flex-row gap-3 justify-center mb-6"
+            className="flex flex-col md:flex-row gap-3 justify-center mb-6"
             variants={itemVariants}
           >
             <motion.button
-              onClick={handleGoBack}
+              onClick={() => navigate("/")}
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+              className="px-6 py-3 bg-yellow-500 flex items-center justify-center gap-2 text-white rounded-xl font-semibold"
             >
-              <LuChevronLeft className="h-5 w-5" />
-              Go Back
+              <LuHouse className="h-5 w-5" />
+              Go Home
             </motion.button>
 
             <motion.button
@@ -216,16 +216,16 @@ const ErrorPage = () => {
               Reload
             </motion.button>
 
-            <motion.div
-              onClick={() => navigate("/")}
+            <motion.button
+              onClick={handleGoBack}
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              className="px-6 py-3 bg-linear-to-r flex items-center justify-center gap-2 from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
             >
-              <HomeIcon className="h-5 w-5" />
-              Go Home
-            </motion.div>
+              <LuChevronLeft className="h-5 w-5" />
+              Go Back
+            </motion.button>
           </motion.div>
 
           {/* Quick Links */}
@@ -251,7 +251,7 @@ const ErrorPage = () => {
           </motion.div>
 
           {/* Development Stack Trace */}
-          {import.meta.env.NODE_ENV === "development" &&
+          {!import.meta.env.NODE_ENV === "production" &&
             error?.error?.stack && (
               <motion.details
                 className="mt-6 text-left"
@@ -260,7 +260,10 @@ const ErrorPage = () => {
                 <summary className="cursor-pointer text-sm text-gray-500 font-medium mb-2">
                   Technical Details (Development)
                 </summary>
-                <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-xs overflow-auto max-h-40 mt-2">
+                <pre
+                  className="bg-gray-900 text-y-400from-yellow-500
+                 p-4 rounded-xl text-xs overflow-auto max-h-40 mt-2"
+                >
                   {error.error.stack}
                 </pre>
               </motion.details>
@@ -269,9 +272,9 @@ const ErrorPage = () => {
 
         {/* Support Message */}
         <motion.div className="text-center mt-6" variants={itemVariants}>
-          <p className="text-white text-opacity-80 text-sm">
+          <p className="text-gray-400 text-opacity-80 text-sm">
             Need help?{" "}
-            <button className="underline hover:text-white transition-colors">
+            <button className="underline hover:text-yellow-500 transition-colors">
               Contact Support
             </button>
           </p>

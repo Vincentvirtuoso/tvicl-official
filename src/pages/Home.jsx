@@ -1,54 +1,65 @@
-import React, { useState } from "react";
 import { containerVariants, itemVariants } from "../utils/animationVariants";
 import dashboardData from "../utils/data";
 import {
   FiHome,
   FiUsers,
   FiDollarSign,
-  FiMapPin,
-  FiSettings,
-  FiBell,
-  FiSearch,
-  FiMenu,
-  FiX,
-  FiFileText,
-  FiMessageSquare,
-  FiCheck,
-  FiActivity,
-  FiChevronRight,
-  FiMoreVertical,
   FiCalendar,
   FiTarget,
-  FiAward,
+  FiEye,
+  FiSearch,
 } from "react-icons/fi";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-} from "recharts";
 import StatCard from "../components/common/StatCard";
 import { motion } from "framer-motion";
-import RecentActivities from "../section/home/RecentActivities";
+import { useNavigate } from "react-router-dom";
+import { usePropertyAPI } from "../hooks/useProperty";
+import { useEffect, useState } from "react";
+import axios from "../api/axiosInstance";
 
 function Home() {
-  const [timeRange, setTimeRange] = useState("monthly");
+  // const [timeRange, setTimeRange] = useState("monthly");
+  const navigate = useNavigate();
+  const { data, isLoading, searchProperties } = usePropertyAPI();
+
+  useEffect(() => {
+    searchProperties("");
+  }, []);
+
+  // Extract properties from the hook data
+  const properties = data.properties || [];
+  const analytics = data.stats || {};
+  const totalProperties = analytics.totalProperties || properties.length;
+
+  const totalViews =
+    analytics.totalViews ||
+    properties.reduce((sum, prop) => sum + (prop.views || 0), 0);
+  const totalInquiries =
+    analytics.totalInquiries ||
+    properties.reduce((sum, prop) => sum + (prop.inquiries || 0), 0);
+
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch users from backend
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+
+      const res = await axios.get(`/auth/all-users`, {});
+
+      if (res.data.success) {
+        setUsers(res.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   return (
     <motion.div
@@ -62,7 +73,7 @@ function Home() {
       {/* Welcome Banner */}
       <motion.div
         variants={itemVariants}
-        className="bg-linear-to-r from-yellow-600 via-yellow-700 to-red-700 rounded-2xl p-8 text-white shadow-xl"
+        className="bg-linear-to-br from-yellow-500 to-orange-600 rounded-2xl p-8 text-white shadow-xl"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -94,36 +105,36 @@ function Home() {
       >
         <StatCard
           title="Total Properties"
-          value={dashboardData.stats.totalProperties.toLocaleString()}
-          change={dashboardData.stats.monthlyGrowth}
+          value={totalProperties?.toLocaleString() || 0}
           icon={FiHome}
+          loading={isLoading("properties")}
           color="yellow"
         />
         <StatCard
           title="Total Users"
-          value={dashboardData.stats.totalUsers.toLocaleString()}
-          change={dashboardData.stats.userGrowth}
+          value={users?.length.toLocaleString()}
           icon={FiUsers}
+          loading={loading}
           color="green"
         />
         <StatCard
-          title="Total Revenue"
-          value={`₦${(dashboardData.stats.totalRevenue / 1000000).toFixed(1)}M`}
-          change={15.2}
-          icon={FiDollarSign}
+          title="Total Views"
+          value={totalViews?.toLocaleString() || 0}
+          icon={FiEye}
           color="red"
+          loading={isLoading("properties")}
         />
         <StatCard
-          title="Conversion Rate"
-          value={`${dashboardData.stats.conversionRate}%`}
-          change={2.4}
-          icon={FiTarget}
+          title="Total Inquiries"
+          value={totalInquiries.toLocaleString() || 0}
+          icon={FiSearch}
           color="orange"
+          loading={isLoading("properties")}
         />
       </motion.div>
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           variants={itemVariants}
           className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition"
@@ -216,10 +227,10 @@ function Home() {
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
-      </div>
+      </div> */}
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div
           variants={itemVariants}
           className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition"
@@ -248,7 +259,7 @@ function Home() {
         <motion.div variants={itemVariants}>
           <RecentActivities />
         </motion.div>
-      </div>
+      </div> */}
 
       {/* Performance & Top Properties */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -264,21 +275,8 @@ function Home() {
               Department performance overview
             </p>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart data={dashboardData.performanceMetrics}>
-              <PolarGrid stroke="#e5e7eb" />
-              <PolarAngleAxis dataKey="subject" stroke="#6b7280" />
-              <PolarRadiusAxis stroke="#6b7280" />
-              <Radar
-                name="Performance"
-                dataKey="A"
-                stroke="#3b82f6"
-                fill="#3b82f6"
-                fillOpacity={0.6}
-              />
-              <Tooltip />
-            </RadarChart>
-          </ResponsiveContainer>
+
+          <p className=" text-center italic">Nothing here yet.</p>
         </motion.div>
 
         <motion.div
@@ -293,7 +291,8 @@ function Home() {
               Most viewed listings this month
             </p>
           </div>
-          <div className="space-y-4">
+          <p className=" text-center italic">Nothing here yet.</p>
+          {/* <div className="space-y-4">
             {dashboardData.topProperties.map((property, index) => (
               <div
                 key={property.id}
@@ -322,13 +321,13 @@ function Home() {
                 <FiChevronRight className="w-5 h-5 text-gray-400" />
               </div>
             ))}
-          </div>
+          </div> */}
         </motion.div>
       </div>
 
       {/* User Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
+      {/* <motion.div
           variants={itemVariants}
           className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition"
         >
@@ -365,54 +364,45 @@ function Home() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </motion.div>
+        </motion.div> */}
 
-        <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-          {[
-            {
-              title: "Add Property",
-              icon: FiHome,
-              color: "yellow",
-              desc: "List new property",
-            },
-            {
-              title: "Manage Users",
-              icon: FiUsers,
-              color: "green",
-              desc: "View all users",
-            },
-            {
-              title: "View Reports",
-              icon: FiFileText,
-              color: "red",
-              desc: "Generate reports",
-            },
-            {
-              title: "System Logs",
-              icon: FiActivity,
-              color: "orange",
-              desc: "Check activity",
-            },
-          ].map((action, idx) => (
-            <motion.button
-              key={idx}
-              whileHover={{ y: -4, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition text-left group"
+      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
+        {[
+          {
+            title: "Add Property",
+            icon: FiHome,
+            color: "yellow",
+            desc: "List new property",
+            to: "/add-property",
+          },
+          {
+            title: "Manage Users",
+            icon: FiUsers,
+            color: "green",
+            desc: "View all users",
+            to: "/users",
+          },
+        ].map((action, idx) => (
+          <motion.button
+            key={idx}
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition text-left group"
+            onClick={() => navigate(action.to)}
+          >
+            <div
+              className={`w-12 h-12 bg-linear-to-br from-${action.color}-500 to-${action.color}-600 rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition`}
             >
-              <div
-                className={`w-12 h-12 bg-linear-to-br from-${action.color}-500 to-${action.color}-600 rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition`}
-              >
-                <action.icon className="w-6 h-6" />
-              </div>
-              <h4 className="text-base font-semibold text-gray-800 mb-1">
-                {action.title}
-              </h4>
-              <p className="text-sm text-gray-500">{action.desc}</p>
-            </motion.button>
-          ))}
-        </motion.div>
-      </div>
+              <action.icon className="w-6 h-6" />
+            </div>
+            <h4 className="text-base font-semibold text-gray-800 mb-1">
+              {action.title}
+            </h4>
+            <p className="text-sm text-gray-500">{action.desc}</p>
+          </motion.button>
+        ))}
+      </motion.div>
+      {/* </div> */}
     </motion.div>
   );
 }
